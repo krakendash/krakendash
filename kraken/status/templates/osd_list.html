@@ -2,8 +2,26 @@
 
 {% block osd_list %}
 
-{% for osd in osd_list.output %}
-  <a href="{{ osd }}"><button type="button" class="btn btn-lg btn-default">OSD {{ osd }}</button></a>
+<div class="panel panel-info">
+  <div class="panel-heading">
+    <p>In</p>
+  </div>
+  <div class="panel-body">
+{% for osd in osds_in %}
+  <a href="{{ osd.id }}"><button type="button" class="btn btn-lg {% if osd.up == 1 %}btn-success{% else %}btn-danger{% endif %}">OSD {{ osd.id }}</button></a>
 {% endfor %}
+  </div>
+</div>
+
+<div class="panel panel-info">
+  <div class="panel-heading">
+    <p>Out</p>
+  </div>
+  <div class="panel-body">
+{% for osd in osds_out %}
+  <a href="{{ osd.id }}"><button type="button" class="btn btn-lg {% if osd.up == 1 %}btn-success{% else %}btn-danger{% endif %}">OSD {{ osd.id }}</button></a>
+{% endfor %}
+  </div>
+</div>
 
 {% endblock %}
