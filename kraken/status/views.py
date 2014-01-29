@@ -36,7 +36,16 @@ def monitor_status(request):
   return render_to_response('monitor_status.html', locals())
 
 def osd_list(request):
-  osd_list = json.loads(req(URLS['osd_listids']))
+  osd_details = json.loads(req(URLS['osd_details']))
+  osds = osd_details['output']['osds']
+  osds_in = []
+  osds_out = []
+  for idx in range(0, len(osds)):
+    osds[idx]['id'] = idx
+    if osds[idx]['in'] == 1:
+      osds_in.append(osds[idx])
+    else:
+      osds_out.append(osds[idx])
   return render_to_response('osd_list.html', locals())
 
 def osd_details(request, osd_num):
