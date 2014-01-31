@@ -2,8 +2,23 @@
 
 {% block osd_list %}
 
-{% for osd in osd_list.output %}
-  <a href="{{ osd }}"><button type="button" class="btn btn-lg btn-default">OSD {{ osd }}</button></a>
+{% for osd_details in osd_list %}
+<a href="{{ osd_details.osd }}"><button type="button" class="btn btn-lg 
+		{% if osd_details.in and osd_details.up %}
+		btn-success
+		{% elif not osd_details.in and osd_details.up %}
+		btn-info
+		{% elif not osd_details.up and osd_details.in %}
+		btn-warning
+		{% else %}
+		btn-danger
+		{% endif %}
+		
+		">
+		OSD {{ osd_details.osd }} <br />
+		In: {{ osd_details.in }} 
+		Up: {{ osd_details.up }} 
+</button></a>
 {% endfor %}
 
 {% endblock %}

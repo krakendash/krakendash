@@ -6,10 +6,17 @@
 
   {% for node in monitor_status.output.monmap.mons %}
     <a href="{{ node.name }}">
-      <button type="button" class="btn btn-lg btn-success">
+		<button type="button" class="btn btn-lg 
+		{% if node.up %}
+			btn-success
+		{% else %}
+			btn-danger
+		{% endif %}
+		">
         Name: {{ node.name }}<br>
         Rank: {{ node.rank }}<br>
         Address: {{ node.addr }}<br>
+		{% if not node.up %} DOWN!{% endif %}
       </button>
     </a>
   {% endfor %}
