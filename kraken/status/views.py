@@ -33,10 +33,23 @@ def cluster_health(request):
 
 def monitor_status(request):
   monitor_status = json.loads(req(URLS['monitor_status']))
+  health = json.loads(req(URLS['cluster_health']))
+  unhealthy_mons = health['output']['health']['health_services'][0]['mons']
+  added_mons = monitor_status['output']['monmap']['mons']
+
+  #unhealth mons disappears when they're all up
+  if len(unhealthy_mons) > 0:
+    for active_mon in unhealthy_mons:
+      for mon in added_mons:
+        if active_mon['name'] == mon['name']:
+          mon['up'] = True
+  else:
+    for mon in added_mons:
+      mon['up'] = True
   return render_to_response('monitor_status.html', locals())
 
 def osd_list(request):
-  osd_list = json.loads(req(URLS['osd_listids']))
+  osd_list = json.loads(req(URLS['osd_details']))['output']['osds']
   return render_to_response('osd_list.html', locals())
 
 def osd_details(request, osd_num):
