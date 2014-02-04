@@ -129,6 +129,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
                 
 
                 </h1>
+                {% if cluster_health.output.overall_status != "HEALTH_OK" %}
+				  {{ cluster_health.output.summary.0.summary }}
+                {% endif %}
               </div>
             </div>
           </div>
