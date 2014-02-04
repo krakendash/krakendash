@@ -129,6 +129,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
                 
 
                 </h1>
+                {% if cluster_health.output.overall_status != "HEALTH_OK" %}
+				  {{ cluster_health.output.summary.0.summary }}
+                {% endif %}
               </div>
             </div>
           </div>
@@ -239,7 +242,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
           </div>
 
 
-          <div class="col-sm-9">
+          <div class="col-sm-6">
 
             <div class="panel panel-default">
 
@@ -264,6 +267,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
           </div><!-- /.col-sm-4 -->
 
+          <div class="col-sm-3">
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <h3 class="panel-title">Activity</h3>
+              </div>
+              <div class="panel-body">
+				  Write Bytes/Sec: {{ write_bytes_per_sec }} <br />
+				  Ops/Sec: {{ cluster_status.output.pgmap.op_per_sec }}
+			  </div>
+			</div>
+		  </div>
        </div>
 
               <div class="alert alert-success alert-dismissable">

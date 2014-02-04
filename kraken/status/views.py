@@ -79,6 +79,8 @@ def home(request):
   mons_crit = total_mon_count - (mons_ok + mons_warn)
 
 
+  ''' maybe speed? '''
+  write_bytes_per_sec = filesize.naturalsize(cluster_status['output']['pgmap']['write_bytes_sec'])
   ''' get a rough estimate of cluster free space. is this accurate '''
   presp, pg_stat = get_data.pg_stat(body = 'json')
   bytes_total = cluster_status['output']['pgmap']['bytes_total']
