@@ -96,8 +96,3 @@ CEPH_BASE_URL = 'http://127.0.0.1:5000/api/v0.1/'
 #put any settings you need to override in local_settings.py, and it's gitignored
 if os.path.exists(os.path.join(BASE_DIR, 'kraken/local_settings.py')):
 	from kraken.local_settings import *  # flake8: noqa
-
-CEPH_URLS = {
-  'osd_details': CEPH_BASE_URL + 'osd/dump',
-  'osd_perf': CEPH_BASE_URL + 'osd/perf',
-}
