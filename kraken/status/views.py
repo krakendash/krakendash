@@ -41,9 +41,6 @@ import json
 import subprocess
 from humanize import filesize
 
-URLS = settings.CEPH_URLS
-
-
 def req(url):
     """
     The main request builder
@@ -59,10 +56,10 @@ def home(request):
     """
     Main dashboard, Overall cluster health and status
     """
-    get_data = wrapper.CephWrapper(endpoint=settings.CEPH_BASE_URL)
+    ceph = wrapper.CephWrapper(endpoint=settings.CEPH_BASE_URL)
 
-    cresp, cluster_health = get_data.health(body='json')
-    sresp, cluster_status = get_data.status(body='json')
+    cresp, cluster_health = ceph.health(body='json')
+    sresp, cluster_status = ceph.status(body='json')
 
     # Monitors
     all_mons = cluster_status['output']['monmap']['mons']
@@ -97,7 +94,7 @@ def home(request):
         activities['Recovering Keys'] = pgmap.get('recovering_keys_per_sec')
 
     # Get a rough estimate of cluster free space. Is this accurate ?
-    presp, pg_stat = get_data.pg_stat(body='json')
+    presp, pg_stat = ceph.pg_stat(body='json')
     bytes_total = cluster_status['output']['pgmap']['bytes_total']
     bytes_used = cluster_status['output']['pgmap']['bytes_used']
 
@@ -133,7 +130,7 @@ def home(request):
         pg_states[state['state_name']] = state['count']
 
     # osds
-    dresp, osd_dump = get_data.osd_dump(body='json')
+    dresp, osd_dump = ceph.osd_dump(body='json')
     osd_state = osd_dump['output']['osds']
 
     osds_ok = 0
@@ -160,9 +157,15 @@ def ops(request):
 
 
 def osd_details(request, osd_num):
+    ceph = wrapper.CephWrapper(endpoint=settings.CEPH_BASE_URL)
     osd_num = int(osd_num)
-    osd_details = json.loads(req(URLS['osd_details']))
-    osd_disk_details = osd_details['output']['osds'][osd_num]
-    osd_perf = json.loads(req(URLS['osd_perf']))
-    osd_disk_perf = osd_perf['output']['osd_perf_infos'][osd_num]
+
+    reponse, osd_dump = ceph.osd_dump(body='json')
+    osd_disk_details = filter(lambda x: x['osd']  == 
+            int(osd_num), osd_dump['output']['osds'])[0]
+
+    response, osd_perf = ceph.osd_perf(body='json')
+    osd_disk_perf = filter(lambda x: x['id']  == 
+            int(osd_num), osd_perf['output']['osd_perf_infos'])[0]
+
     return render_to_response('osd_details.html', locals())
