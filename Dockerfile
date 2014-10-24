@@ -6,10 +6,9 @@
 #
 # Find out more about docker here: www.docker.com
 
-
-MAINTAINER Evan Felix
-
 FROM ubuntu:trusty
+
+MAINTAINER karcaw@gmail.com
 
 
 RUN apt-get update
