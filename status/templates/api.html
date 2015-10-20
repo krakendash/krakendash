@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+{% block title %}Api{% endblock %}
+{% block content %}
+<div class="container api-page">
+    <div class="starter-template">
+        <h1>API</h1>
+        You can add <code>?json</code> at the end of url to grab information in JSON.
+        <h2>API compatible urls</h2>
+        <dl class="dl-horizontal">
+            <dt><a href="/krakendash/?json"><code>/?json</code></a></dt><dd>dashboard information: cluster stats and usage</dd>
+            <dt><a href="/krakendash/ops?json"><code>/ops?json</code></a></dt><dd>list of users with their info (secret_key omitted)</dd>
+            <dt><a href="/krakendash/activity"><code>/activity</code></a></dt><dd>current operations in cluster</dd>
+        </dl>
+    </div>
+</div>
+{% endblock %}

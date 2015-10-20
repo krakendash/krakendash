@@ -1,0 +1,15 @@
+[Unit]
+    Description=Krakendash
+    After=network.target ceph-rest-api.service
+
+[Service]
+    ExecStart=/usr/bin/python manage.py runserver 0.0.0.0:8000
+    WorkingDirectory=/var/www/krakendash
+    User=ceph
+    Group=ceph
+    Restart=always
+    PIDFile=/var/run/krakendash.pid
+    RestartSec=500ms
+
+[Install]
+    WantedBy=multi-user.target

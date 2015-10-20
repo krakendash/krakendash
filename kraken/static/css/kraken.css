@@ -1,3 +1,5 @@
+body {padding-top:70px;text-align:center;}
+.api-page {text-align: left;}
 .table-curved {
    border-collapse: separate;
    border: solid #ccc 1px;
@@ -25,3 +27,8 @@
 .table-curved > :last-child > :last-child > :last-child {
     border-radius: 0 0 6px 0;
 }
+.popover{max-width:600px; font-size:12px;}
+
+.btn-toggle {background: none; float: right;position: relative; top: -6pt; right: -10pt;}
+
+.nofocus {pointer-events: none; cursor: not-allowed;}

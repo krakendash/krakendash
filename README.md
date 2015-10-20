@@ -1,10 +1,16 @@
-# kraken
+# kraken + S3
 
 A free Ceph dashboard for stats and monitoring
 
-You can see what the latest version looks like [here](http://imgur.com/fDnqpO9)
-
 Come hang out with us on freenode in #kraken-dashboard
+
+## Overview
+
+![Status dashboard](/screenshots/status.png?raw=true "Status")
+
+![User panel](/screenshots/users.png?raw=true "Users")
+
+![User mod](/screenshots/user_mod.png?raw=true "User mod")
 
 ## Installation and Roadmap
 
@@ -20,7 +26,7 @@ The ceph-rest-api must be run on either a member of your Ceph cluster, or on a i
 ```
   sudo su -
   apt-get update && apt-get install -y python-pip python-dev libxml2-dev libxslt-dev
-  git clone https://github.com/krakendash/krakendash
+  git clone https://github.com/m-messiah/krakendash.git
   cp krakendash/contrib/*.sh .
   cd krakendash
   pip install -r requirements.txt
@@ -45,7 +51,20 @@ Now you can run Kraken!
 
 ./api.sh (if you are running kraken on a ceph client or cluster node)
 ./django.sh
-  
+
+### Systemd-based system
+
+```
+  sudo su -
+  yum upgrade && yum install -y python-pip python-devel libxml2-devel libxslt-devel
+  cd /var/www
+  git clone https://github.com/m-messiah/krakendash.git
+  cp krakendash/contrib/systemd/* /etc/systemd/system/multi-user.target.wants/
+  systemctl daemon-reload
+  cd krakendash
+  pip install -r requirements.txt
+  systemctl start ceph-rest-api krakendash
+```  
   
 If you are not running Kraken on a Ceph node, edit krakendash/kraken/settings.py. Here you can change CEPH_BASE_URL to point at your host running ceph-rest-api. Copy the api.sh script to that host and run it as root. Kraken will then talk to that API endpoint for cluster data.
 
@@ -75,3 +94,8 @@ If you are not running Kraken on a Ceph node, edit krakendash/kraken/settings.py
 - [] Collectd integration
 - [] Graphite integration
 - [] Multi-cluster support
+
+### Milestone S3 One
+- [x] S3 users stats
+- [x] S3 users administration
+- [x] S3 users customize and quotes

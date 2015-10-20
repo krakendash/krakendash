@@ -4,3 +4,6 @@ python-cephclient>=0.1.0.4
 djangorestframework>=2.3.12
 Markdown>=2.3.1
 django-filter>=0.7
+django-mathfilters>=0.3.0
+requests-aws
+-e git+https://github.com/dyarnell/rgwadmin.git#egg=rgwadmin

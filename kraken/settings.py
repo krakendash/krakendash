@@ -17,7 +17,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'u%q(yzd%4s(5qyjui08!&!6dbjphzia^3^-*95h+r=$jr5%j!1'
+SECRET_KEY = 'qcv3468b6n53bv53u5cnyp389bcn398nv5[1p46789bvnc8p35oi'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -30,21 +30,15 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = (
-    'django.contrib.admin',
-    'django.contrib.auth',
     'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework'
+    'mathfilters',
 )
 
+
 MIDDLEWARE_CLASSES = (
-    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
@@ -57,10 +51,10 @@ WSGI_APPLICATION = 'kraken.wsgi.application'
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
+    #'default': {
+    #    'ENGINE': 'django.db.backends.sqlite3',
+    #    'NAME': os.path.join(BASE_DIR, 'users.db'),
+    #}
 }
 
 # Internationalization
@@ -68,7 +62,7 @@ DATABASES = {
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
 
@@ -80,7 +74,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 STATIC_ROOT = ''
-STATIC_URL = '/static/'
+STATIC_URL = '/krakendash/static/'
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'kraken/static'),
 )
@@ -89,20 +83,18 @@ STATICFILES_DIRS = (
 # Template dir
 TEMPLATE_DIRS = (
     os.path.join(BASE_DIR, 'status/templates'),
+    os.path.join(BASE_DIR, 'ops/templates'),
 )
 
-#Configuration for django-rest-framework
-REST_FRAMEWORK = {
-    # Use hyperlinked styles by default.
-    # Only used if the `serializer_class` attribute is not set on a view.
-    'DEFAULT_MODEL_SERIALIZER_CLASS':
-        'rest_framework.serializers.HyperlinkedModelSerializer',
-
-}
 
 # Ceph REST URLS
 CEPH_BASE_URL = 'http://127.0.0.1:5000/api/v0.1/'
 
-#put any settings you need to override in local_settings.py, and it's gitignored
-if os.path.exists(os.path.join(BASE_DIR, 'kraken/local_settings.py')):
-	from kraken.local_settings import *  # flake8: noqa
+S3_SERVERS = [
+    'ceph1',
+    'ceph2',
+    'ceph3',
+]
+S3_ACCESS = ""
+S3_SECRET = ""
+

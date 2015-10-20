@@ -1,20 +1,36 @@
 {% extends "layout.html" %}
+{% load mathfilters %}
+{% block title %}
+Ceph
+{% if cluster_health.output.overall_status == "HEALTH_OK" %}
+OK
+{% elif cluster_health.output.overall_status == "HEALTH_WARN" %}
+WARN
+{% else %}
+CRIT
+{% endif %}/Used: {{ data_used }}{{ data_scale }}
+{% endblock %}
 {% block content %}
 <div class="container">
-    <div class="starter-template">
-        <div class="row">
-            <div class="col-sm-3">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">Health</h3>
-                    </div>
+    <div class="row">
+        <div class="col-sm-3">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Health</h3>
+                </div>
                 <div class="panel-body">
                     {% if cluster_health.output.overall_status == "HEALTH_OK" %}
-                      <h1 class="text-success">OK</h1>
+                      <h1 class="text-success"><i class="glyphicon glyphicon-ok"></i></h1>
                     {% elif cluster_health.output.overall_status == "HEALTH_WARN" %}
-                      <h1 class="text-warning">WARN</h1>
+                      <h1 class="text-warning"><i class="glyphicon glyphicon-warning-sign"></i></h1>
+                     {% for detail in cluster_health.output.detail %}
+                        <p class="text-warning">{{detail}}</p>
+                     {% endfor %}
                     {% else %}
-                      <h1 class="text-danger">CRIT</h1>
+                      <h1 class="text-danger"><i class="glyphicon glyphicon-fire"></i></h1>
+                      {% for detail in cluster_health.output.detail %}
+                        <p class="text-danger">{{detail}}</p>
+                      {% endfor %}
                     {% endif %}
                 </div>
             </div>
@@ -30,29 +46,35 @@
                         <thead>
                             <tr>
                                 <th></th>
-                                <th class="text-center">OK</th>
-                                <th class="text-center">WARN</th>
-                                <th class="text-center">CRIT</th>
+                                <th class="text-center"><i class="glyphicon glyphicon-ok"></i></th>
+                                <th class="text-center"><i class="glyphicon glyphicon-warning-sign"></i></th>
+                                <th class="text-center"><i class="glyphicon glyphicon-fire"></i></th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <td><b>MON</b></td>
-                                <td>{{ mons_ok }}</td>
-                                <td>{{ mons_warn }}</td>
-                                <td>{{ mons_crit }}</td>
+                                <td>{{ mons.ok }}</td>
+                                <td>{{ mons.warn }}</td>
+                                <td>{{ mons.crit }}</td>
                             </tr>
                             <tr>
                                 <td><b>OSD</b></td>
-                                <td>{{ osds_ok }}</td>
-                                <td>{{ osds_warn }}</td>
-                                <td>{{ osds_crit }}</td>
+                                <td>{{ osd.ok }}</td>
+                                <td>{{ osd.warn }}</td>
+                                <td>{{ osd.crit }}</td>
                             </tr>
                             <tr>
                                 <td><b>PG</b></td>
-                                <td>{{ pg_ok }}</td>
-                                <td>{{ pg_warn }}</td>
-                                <td>{{ pg_crit }}</td>
+                                <td>{{ pg.ok }}</td>
+                                <td>{{ pg.warn }}</td>
+                                <td>{{ pg.crit }}</td>
+                            </tr>
+                            <tr>
+                                <td><b>RGW</b></td>
+                                <td>{{ radosgw.ok }}</td>
+                                <td>0</td>
+                                <td>{{ radosgw.fail }}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -66,100 +88,195 @@
                     <h3 class="panel-title">Usage</h3>
                 </div>
                 <div class="panel-body">
-                    <div id="gauge" style="width:220px; height:140px"></div>
-                        <script>
-                            var g = new JustGage({
-                            id: "gauge",
-                            value: {{ data_used }},
-                            min: 0,
-                            max: {{ data_avail }},
-                            title: "Data Usage (in {{ data_scale }})"
-                            });
-                        </script>
-                    </div>
+                    <div id="gauge-usage"></div>
+                    <script>
+                        var draw_usage = function() {
+                            var size = $("#gauge-usage").width();
+                            size = (size < 200)? size: 200;
+                            var R = size / 2.5,
+                            strength = size / 5,
+                            center = size / 2,
+                            param = {stroke: "#fff", "stroke-width": strength},
+                            r = Raphael("gauge-usage", size, size / 2 + strength);
+                            r.customAttributes.arc = function (value, total, R, bg) {
+                                    var alpha = 180 / total * value,
+                                        a = (180 - alpha) * Math.PI / 180,
+                                        x = center + R * Math.cos(a),
+                                        y = center - R * Math.sin(a),
+                                        path;
+                                    if (value < (total / 3)) {
+                                        color = "#b6de71";
+                                    } else if (value > (2 * total / 3)) {
+                                        color = "#cc5454";
+                                    } else {
+                                        color = "#edd268";
+                                    }
+                                    if (bg) { color = "#f2f2f2";}
+                                    if (total == value) {
+                                        path = [["M", center - R, center], ["A", R, R, 0, 0, 1, center + R, center ]];
+                                    } else {
+                                        path = [["M", center - R, center], ["A", R, R, 0, +(alpha > 180), 1, x, y]];
+                                    }
+                                    return {path: path, stroke: color};
+                            };
+                            var bg = r.path().attr(param).attr({arc: [{{ data_avail }}, {{ data_avail }}, R, 1]});
+                            var scale = r.path().attr(param).attr({arc: [0, {{ data_avail }}, R]});
+                            scale.animate({arc: [{{ data_used }}, {{ data_avail }}, R]}, 900, '>');
+                            var hoverIn = function() {this.attr({"stroke-width": strength + 3});};
+                            var hoverOut = function() {this.attr({"stroke-width": strength});};
+                            scale.hover(hoverIn, hoverOut, scale, scale);
+                            r.text(center - R, center + 10, "0").attr({fill: "#ccc" });
+                            r.text(center + R, center + 10, "{{ data_avail }}").attr({fill: "#ccc" });
+                            r.text(center, center - strength / 3.4, "{{ data_used }}").attr({"font-weight": 600, "font-size": strength / 1.2});
+                            r.text(center, center + ((strength / 5 > 10)? 2 + strength / 5 : 10), "{{ data_scale }}").attr({fill: "#ccc", "font-size": (strength / 2.5 > 10)? strength / 2.5 : 10 });
+                        };
+                        draw_usage();
+                    </script>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="row">
-            <div class="col-sm-3">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">PG States</h3>
-                    </div>
-                <div class="panel-body">
-                    <!--
-                    <div class="table-responsive">
-                      <table class="table table-curved">
-                        <tr>
-                          <td>state</td>
-                          <td>count</td>
-                        </tr>
-                      {% for k, v in pg_states.items %}
-                        <tr>
-                          <td>{{ k }}</td>
-                          <td>{{ v }}</td>
-                        </tr>
-                      {% endfor %}
-                      </table>
-                    </div>
-                    -->
-                    <ul class="list-group">
-                        {% for k, v in pg_states.items %}
-                            <li class="list-group-item">
-                                <span class="badge">{{ v }}</span>
-                                {{ k }}
-                            </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-sm-6">
+    <div class="row">
+        <div class="col-sm-3">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h3 class="panel-title" id="osdNotice">OSD Status</h3>
+                    <h3 class="panel-title">PG States</h3>
                 </div>
-                <div class="panel-body" align="left">
-                    <style>p.osd_button { line-height: 300%; }</style>
-                    <p class="osd_button">
-                        {% for osd in osd_state %}
-                            {% if osd.state.0 == "exists" and osd.state.1 == "up" %}
-                                <button type="button" class="btn btn-xs btn-success" role="button" send_url="/osd/{{ osd.osd }}">{{ osd.osd }}</button>
-                            {% else %}
-                                <button type="button" class="btn btn-xs btn-danger" role="button" send_url="/osd/{{ osd.osd }}">{{ osd.osd }}</button>
-                            {% endif %}
-                        {% endfor %}
-                    </p>
-                </div>
+                <ul class="list-group">
+                    {% for k, v in pg.stat.items %}
+                        <li class="list-group-item">
+                            {{ k }}
+                            <span class="label label-default">{{ v }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
             </div>
         </div>
 
         <div class="col-sm-3">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Activity</h3>
+                    <h3 class="panel-title" id="osdNotice">OSD Status</h3>
                 </div>
-                <div class="panel-body">
-                    {% for label, data in activities.items %}
-                        {{ label }}: {{ data }}/Sec <br />
-                    {% empty %}
-                        Cluster is idle.
-                    {% endfor %}
+                <div class="panel-body" align="left">
+                    <div class="btn-group btn-group-justified" role="group">
+                        {% for storage in osd.state %}
+                            <div class="btn-group btn-group-xs" role="group">
+                            {% if storage.state.0 == "exists" and storage.state.1 == "up" %}
+                                {% if storage.up and storage.in %}
+                                    <button id="osd_data" type="button" class="btn btn-success" role="button" send_url="/krakendash/osd/{{ storage.osd }}">{{ storage.osd }}</button>
+                                {% else %}
+                                    <button id="osd_data" type="button" class="btn btn-warning" role="button" send_url="/krakendash/osd/{{ storage.osd }}">{{ storage.osd }}</button>
+                                {% endif %}
+                            {% else %}
+                                <button id="osd_data" type="button" class="btn btn-danger" role="button" send_url="/krakendash/osd/{{ storage.osd }}">{{ storage.osd }}</button>
+                            {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-sm-3">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title" id="rgwNotice">RGW Status</h3>
+                </div>
+                <div class="panel-body" align="left">
+                    <div class="btn-group btn-group-justified nofocus" role="group">
+                        {% for rgw, status in radosgw.stat.items|dictsort:"0.lower" %}
+                            <div class="btn-group btn-group-xs" role="group">
+                            {% if status == 1 %}
+                                <button type="button" class="btn btn-success">{{ rgw }}</button>
+                            {% else %}
+                                <button type="button" class="btn btn-danger">{{ rgw }}</button>
+                            {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">S3 users</h3>
+        </div>
+        <div class="panel-body">
+           <div class="row"><script>var draw = new Array();</script>
+                {% for user, data in users.stat.items|dictsort:"0.lower" %}
+                 <div class="col-sm-4 col-lg-3">
+                    <div>{{ user }}</div>
+                    <div id="gauge-{{ user }}" data-container="body" data-toggle="popover" data-placement="top" data-content=""></div>
+                    <script>
+                        draw["{{user}}"] = function() {
+                            var size = $("#gauge-usage").width();
+                            size = (size < 200)? size: 200;
+                            var R = size / 2.5,
+                            strength = size / 10,
+                            center = size / 2;
+                            param = {stroke: "#fff", "stroke-width": strength},
+                            r = Raphael("gauge-{{ user }}", size, size / 2);
+                            r.customAttributes.arc = function (value, total, R, bg, user, bucket) {
+                                    var alpha = 180 / total * value,
+                                        a = (180 - alpha) * Math.PI / 180,
+                                        x = center + R * Math.cos(a),
+                                        y = center - R * Math.sin(a),
+                                        color = "hsb(".concat(Math.round(R) / (size / 2.5), ",", value / total, ", .75)"),
+                                       path;
+                                    if (user && bucket) {
+                                        $("p#legend-" + user + "-" + bucket).css("color", Raphael.getRGB("hsb(".concat(Math.round(R) / (size / 2.5), ", .6, .75)")).hex);
+                                    }
+                                    if (bg) {
+                                        color = "#f2f2f2";
+                                    }
+                                    if (total == value) {
+                                        path = [["M", center - R, center], ["A", R, R, 0, 0, 1, center + R, center ]];
+                                    } else {
+                                        path = [["M", center - R, center], ["A", R, R, 0, +(alpha > 180), 1, x, y]];
+                                    }
+                                    return {path: path, stroke: color};
+                                };
+                            {% for bucket, stat in data.items %}
+                            {% if stat %}
+                                var bg = r.path().attr(param).attr({arc: [1024, 1024, R, 1]});
+                                var scale = r.path().attr(param).attr({arc: [1, 1024, R]});
+                                scale.animate({arc: [+({{ stat.size_kb }} / Math.pow(1024, {{ scale }})), 1024, R, null, "{{user|cut:'.'}}", "{{bucket|cut:'.'}}"]}, 900, '>');
+                                var hoverIn = function() {this.attr({"stroke-width": strength + 3}); $('#gauge-{{user}}').popover({content: "{{ bucket }}: {{stat.size_kb|mul:1024|filesizeformat}} ({{stat.size_kb_actual|mul:1024|filesizeformat}})"}); $('#gauge-{{user}}').popover('show')};
 
-    <div class="alert alert-success alert-dismissable">
-        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-        <strong>Help Tip: </strong>Click on an OSD to get its details.
+                                var hoverOut = function() {this.attr({"stroke-width": strength});$('#gauge-{{user}}').popover('destroy')}
+                                scale.hover(hoverIn, hoverOut, scale, scale);
+                                bg.hover(hoverIn, hoverOut, scale, scale);
+                                R -= size / 15 + 10;
+                            {% endif %}
+                            {% endfor %}
+                        };
+                        draw["{{user}}"]();
+
+                    </script>
+                    <div>
+                        <ul class="list-unstyled">
+                        {% for bucket, stat in data.items %}
+                            <li>
+                                <p class="text-left {% if not stat %}text-muted{% endif %}" id="legend-{{user|cut:'.'}}-{{bucket|cut:'.'}}">{{ bucket }}
+                                {% if stat %}<span class="label label-default pull-right">{{stat.num_objects}}  <i class="glyphicon glyphicon-file"></i> </span>{% endif %}
+                                </p>
+                            </li>
+                        {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+               {% endfor %}
+            </div>
+        </div>
     </div>
 </div>
 <script type="text/javascript">
     $(document).ready(function(){
-        get_osd_data = function() {
+        var get_osd_data = function () {
             var el = $(this);
             var _data = el.attr('alt');
             var send_url = el.attr('send_url');
@@ -168,22 +285,15 @@
                 url: send_url,
                 data: _data,
                 dataType: 'html',
-                success: function(data) {
+                success: function (data) {
                     el.attr('data-content', data);
                     el.popover('show');
                 }
             });
-        }
+        };
 
-        $('button').popover({
-            trigger: 'hover',
-            html: true,
-            delay: {
-                hide: 0,
-            },
-        });
-
-        $('button').click(get_osd_data);
+        $('button[id=osd_data]').popover({trigger: 'hover', html: true, delay: {hide: 0}});
+        $('button[id=osd_data]').click(get_osd_data);
     });
 </script>
 {% endblock %}

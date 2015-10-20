@@ -1,0 +1,41 @@
+{% load mathfilters %}
+<div class="col-sm-6">
+    <div class="panel panel-default {% if stats.suspended > 0 %}text-muted{% endif %}">
+        <div class="panel-heading">
+            <button id="toggle-customize-{{username}}" class="btn btn-toggle text-muted" data-toggle="modal" data-target="#customize-{{ username }}"><i class="glyphicon glyphicon-cog"></i></button>
+            <h3 class="panel-title {% if stats.suspended > 0 %}text-muted{% endif %}">{{ username }}</h3>
+            {% include "customize_user.html" %}
+        </div>
+        <div class="panel-body text-left">
+            <dl class="dl-horizontal">
+                <dt>Name</dt><dd>{{ stats.display_name }}</dd>
+                <dt>Email</dt><dd>{{ stats.email }}</dd>
+                <dt>Max buckets</dt><dd>{{ stats.max_buckets }}</dd>
+                <dt>Keys</dt><dd id="{{username}}-keys">
+                    {% for key in stats.keys %}
+                    <span>{{ key.access_key}}</span>{% if new %}<br><strong>Secret: </strong><span>{{key.secret_key}}</span>{% endif %}
+                    {% endfor %}
+                </dd>
+                <dt>Swift</dt><dd id="{{username}}-swift">
+                    {% for key in stats.swift_keys %}
+                    <span>{{ key.user }}</span><br>{% if new %}<strong>Secret: </strong><span>{{key.secret_key}}</span><br>{% endif %}
+                    {% endfor %}
+                </dd>
+                {% if stats.user_quota.enabled %}
+                <dt>User quota</dt>
+                <dd>
+                    {% if stats.user_quota.max_objects > -1 %}Max objects: {{ stats.user_quota.max_objects }}<br>{% endif %}
+                    {% if stats.user_quota.max_size_kb > -1 %}Max size: {{ stats.user_quota.max_size_kb|mul:1024|filesizeformat }}{% endif %}
+                </dd>
+                {% endif %}
+                {% if stats.bucket_quota.enabled %}
+                <dt>Bucket quota</dt>
+                <dd>
+                    {% if stats.bucket_quota.max_objects > -1 %}Max objects: {{ stats.bucket_quota.max_objects }}<br>{% endif %}
+                    {% if stats.bucket_quota.max_size_kb > -1 %}Max size: {{ stats.bucket_quota.max_size_kb|mul:1024|filesizeformat }}{% endif %}
+                </dd>
+                {% endif %}
+            </dl>
+        </div>
+    </div>
+</div>

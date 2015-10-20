@@ -1,0 +1,36 @@
+<div class="modal fade" id="adduser" tabindex="-1" role="dialog" aria-labelledby="label-adduser" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="label-adduser">Create new user</h4>
+            </div>
+            <form class="form-horizontal" role="form" id="createUser" method="GET" action="/krakendash/user/0/adduser/">{% csrf_token %}
+            <div class="modal-body text-left">
+                <div class="form-group">
+                    <label for="newEmail" class="col-sm-2 control-label">Email</label>
+                    <div class="col-sm-10">
+                        <input type="email" class="form-control" id="newEmail" name="newEmail" placeholder="Email">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="newUid" class="col-sm-2 control-label">UID</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="newUid" name="newUid" placeholder="UID">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="newName" class="col-sm-2 control-label">Name</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="newName" name="newName" placeholder="Name">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Create</button>
+            </div>
+            </form>
+        </div>
+    </div>
+</div>

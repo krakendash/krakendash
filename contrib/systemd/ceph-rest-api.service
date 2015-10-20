@@ -1,0 +1,12 @@
+[Unit]
+    Description=Ceph Rest API
+    After=network.target
+
+[Service]
+    ExecStart=/usr/bin/ceph-rest-api -c /etc/ceph/ceph.conf --cluster ceph -i admin
+    Restart=always
+    PIDFile=/var/run/ceph-rest-api.pid
+    RestartSec=500ms
+
+[Install]
+    WantedBy=multi-user.target

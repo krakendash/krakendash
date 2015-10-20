@@ -1,0 +1,113 @@
+{% extends "layout.html" %}
+{% load mathfilters %}
+{% block title %}
+Service zone
+{% endblock %}
+{% block content %}
+{% if error %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% else %}
+<div class="container">
+    <div class="starter-template">
+        <div class="row">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <button id="toggle-adduser" class="btn btn-toggle text-muted" data-toggle="modal" data-target="#adduser"><i class="glyphicon glyphicon-plus"></i></button>
+                    {% include "new_user.html" %}
+                    <h3 class="panel-title">Users list</h3>
+                </div>
+                <div class="panel-body" id="userList">
+                    {% for username, stats in users.items|dictsort:"0.lower" %}
+                        {% include "user.html" %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function(){
+        var click_url = function () {
+            var el = $(this);
+            var _data = el.attr('alt');
+            var send_url = el.attr('send_url');
+            $.ajax({
+                type: 'GET',
+                url: send_url,
+                data: _data,
+                dataType: 'html',
+                success: function () {
+                    document.location.reload(true);
+                }
+            });
+        };
+        $('button[send_url]').mousedown(click_url);
+
+        var add_key = function () {
+            var el = $(this);
+            var send_url = "/krakendash/user/" + el.attr('username') + "/addkey/";
+            if (el.data()['bs.popover'] && el.data()['bs.popover'].tip().hasClass('in')) {
+                el.popover('destroy');
+                el.html("Add key");
+            } else {
+                $.ajax({
+                    type: 'GET',
+                    url: send_url,
+                    dataType: 'json',
+                    success: function (data) {
+                        el.attr('data-title', data.access_key);
+                        el.attr('data-original-title', data.access_key);
+                        el.attr('data-content', data.secret_key);
+                        el.popover("show");
+                        $("#" + data.user + "-keys").append("<span>" + data.access_key + "</span>\n");
+                        $("#customize-" + data.user).on('hidden.bs.modal', function () {el.popover("hide"); });
+                        el.html("DON'T CLICK THIS BUTTON UNTIL SAVE SECRET KEY");
+                    }
+                });
+            }
+        };
+        $('button[username]').click(add_key);
+
+        var subuser_create = function () {
+            var el = $(this);
+            var name = $("#" + el.attr('subuser') + "-subuser").val();
+            var send_url = "/krakendash/user/" + el.attr('subuser') + "/subuser/";
+            if (el.data()['bs.popover'] && el.data()['bs.popover'].tip().hasClass('in')) {
+                el.popover('destroy');
+                el.html("Create");
+            } else {
+                $.ajax({
+                    type: 'GET',
+                    url: send_url,
+                    dataType: 'json',
+                    data: {'subuser_name':name},
+                    success: function (data) {
+                        el.attr('data-title', data.user);
+                        el.attr('data-original-title', data.user);
+                        el.attr('data-content', data.secret_key);
+                        el.popover("show");
+                        console.log(data.user.split(":", 1)[0]);
+                        $("#" + data.user.split(":", 1)[0] + "-swift").append("<span>" + data.user + "</span>\n");
+                        $("#customize-" + data.user.split(":", 1)[0]).on('hidden.bs.modal', function () {el.popover("hide"); });
+                        el.html("DON'T CLICK UNTIL SAVE KEY");
+                    }
+                });
+            }
+        };
+        $('button[subuser]').click(subuser_create);
+
+        $("#createUser").submit(function(e) {
+            $.ajax({
+                type: $(this).attr("method"),
+                url: $(this).attr("action"),
+                data: $(this).serialize(),
+                success: function(data) {
+                    $("#adduser").modal("hide");
+                    $("#userList").append(data);
+                }
+            });
+            e.preventDefault();
+        });
+
+    });
+</script>
+{% endif %}
+{% endblock %}
