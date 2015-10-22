@@ -26,7 +26,7 @@ The ceph-rest-api must be run on either a member of your Ceph cluster, or on a i
 ```
   sudo su -
   apt-get update && apt-get install -y python-pip python-dev libxml2-dev libxslt-dev
-  git clone https://github.com/m-messiah/krakendash.git
+  git clone https://github.com/krakendash/krakendash.git
   cp krakendash/contrib/*.sh .
   cd krakendash
   pip install -r requirements.txt
@@ -58,7 +58,7 @@ Now you can run Kraken!
   sudo su -
   yum upgrade && yum install -y python-pip python-devel libxml2-devel libxslt-devel
   cd /var/www
-  git clone https://github.com/m-messiah/krakendash.git
+  git clone https://github.com/krakendash/krakendash.git
   cp krakendash/contrib/systemd/* /etc/systemd/system/multi-user.target.wants/
   systemctl daemon-reload
   cd krakendash
