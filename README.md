@@ -2,7 +2,6 @@
 
 A free Ceph dashboard for stats and monitoring
 
-Come hang out with us on freenode in #kraken-dashboard
 
 ## Overview
 
